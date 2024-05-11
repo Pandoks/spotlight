@@ -68,7 +68,7 @@ def main():
 
     elif args.command == "retrieve":
         queries = collection.query(
-            query_embeddings=embedding_function([args.text])[0],
+            query_embeddings=embedding_function([args.text]),
             n_results=args.result_amount,
         )
         print(queries)
