@@ -2,7 +2,7 @@ import ollama
 import chromadb
 import argparse
 import uuid
-from chromadb.utils.embedding_functions import OllamaEmbeddingFunction
+from chromadb.utils import embedding_functions
 
 chromadb_client = None
 embedding_function = None
@@ -38,7 +38,7 @@ def main():
     else:
         chromadb_client = chromadb.Client()
     if args.command != "setup":
-        embedding_function = OllamaEmbeddingFunction(
+        embedding_function = embedding_functions.OllamaEmbeddingFunction(
             url="http://localhost:11434/api/embeddings", model_name=args.model
         )
         collection = chromadb_client.get_collection(name=args.collection_name)
@@ -56,16 +56,20 @@ def main():
         try:
             collection.add(
                 documents=[args.text],
+                embeddings=embedding_function([args.text]),
                 metadatas=[{"file": args.file_location}],
                 ids=[str(uuid.uuid4())],
             )
+            print("True")
             return True
         except:
+            print("False")
             return False
 
     elif args.command == "retrieve":
         queries = collection.query(
-            query_texts=[args.text], n_results=args.result_amount
+            query_embeddings=embedding_function([args.text])[0],
+            n_results=args.result_amount,
         )
         print(queries)
         return queries
