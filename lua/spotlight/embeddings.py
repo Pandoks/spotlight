@@ -15,7 +15,7 @@ def main():
 
     store_parser = subparsers.add_parser("store")
     store_parser.add_argument("--text", type=str, required=True)
-    store_parser.add_argument("--collection-name", type=bool, required=True)
+    store_parser.add_argument("--collection-name", type=str, required=True)
     store_parser.add_argument("--model", type=str, required=True)
     store_parser.add_argument("--db-location", type=str)
     store_parser.add_argument("--file-location", type=str, required=True)
@@ -24,8 +24,7 @@ def main():
     retrieve_parser.add_argument("--text", type=str, required=True)
     retrieve_parser.add_argument("--collection-name", type=str, required=True)
     retrieve_parser.add_argument("--model", type=str, required=True)
-    retrieve_parser.add_argument("--result_amount", type=int, required=True)
-    retrieve_parser.add_argument("--file-location", type=str, required=True)
+    retrieve_parser.add_argument("--result-amount", type=int, required=True)
     retrieve_parser.add_argument("--db-location", type=str)
 
     setup_parser = subparsers.add_parser("setup")
@@ -45,7 +44,13 @@ def main():
         collection = chromadb_client.get_collection(name=args.collection_name)
 
     if args.command == "setup":
-        collection = chromadb_client.create_collection(name=args.collection_name)
+        try:
+            collection = chromadb_client.create_collection(name=args.collection_name)
+            print("True")
+            return True
+        except:
+            print("False")
+            return False
 
     elif args.command == "store":
         try:
@@ -59,7 +64,11 @@ def main():
             return False
 
     elif args.command == "retrieve":
-        collection.query(query_texts=[args.text], n_results=args.result_amount)
+        queries = collection.query(
+            query_texts=[args.text], n_results=args.result_amount
+        )
+        print(queries)
+        return queries
 
 
 if __name__ == "__main__":
