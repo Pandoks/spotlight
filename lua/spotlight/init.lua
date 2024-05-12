@@ -7,7 +7,7 @@ local defaultOptions = {
 	pythonPath = "python",
 	databaseDirectory = ".nvim-spotlight",
 	hidden = true,
-	gitignore = false,
+	gitignore = true,
 }
 for key, value in pairs(defaultOptions) do
 	Module[key] = value
@@ -33,14 +33,14 @@ Module.exec = function(options)
 		local items = vim.fs.dir(directoryLocation)
 		local isInitialized = false
 		for item in items do
-			if vim.fn.isdirectory(directoryLocation .. item) == 1 and item == opts.databaseDirectory then
+			if vim.fn.isdirectory(directoryLocation .. "/" .. item) == 1 and item == opts.databaseDirectory then
 				isInitialized = true
 				break
 			end
 		end
 
 		if isInitialized then
-			print("test")
+			print("Initialized")
 		else
 			print("Initializing...")
 			local setupCommand = opts.pythonPath
@@ -60,13 +60,22 @@ Module.exec = function(options)
 				respect_gitignore = options.gitignore,
 			})
 			for _, filePath in ipairs(files) do
+				if options.gitignore and (filePath:find("%.git/") or filePath:find("/.git$")) then
+					goto continue
+				end
+
+				local databaseDirectoryMatchPattern =
+					opts.databaseDirectory:gsub("([%%%^%$%(%)%.%[%]%*%+%-%?])", "%%%1")
+				if filePath:find(databaseDirectoryMatchPattern .. "/") then
+					goto continue
+				end
+
 				local file = io.open(filePath, "r")
 				if not file then
 					goto continue
 				end
 				local content = file:read("*all")
 				file:close()
-				content = content:gsub("\\", "\\\\"):gsub("'", "\\'")
 				local insertCommand = opts.pythonPath
 					.. " "
 					.. embeddings
@@ -78,10 +87,13 @@ Module.exec = function(options)
 					.. opts.ollamaModel
 					.. " --file-location "
 					.. filePath
-					.. " --text '"
-					.. content
-					.. "'"
-				os.execute(insertCommand)
+				local handle = io.popen(insertCommand, "w")
+				if not handle then
+					goto continue
+				end
+				handle:write(content)
+				handle:close()
+
 				::continue::
 			end
 		end

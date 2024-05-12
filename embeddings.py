@@ -1,3 +1,4 @@
+import sys
 import chromadb
 import argparse
 import uuid
@@ -13,14 +14,12 @@ def main():
     subparsers = parser.add_subparsers(dest="command")
 
     store_parser = subparsers.add_parser("store")
-    store_parser.add_argument("--text", type=str, required=True)
     store_parser.add_argument("--collection-name", type=str, required=True)
     store_parser.add_argument("--model", type=str, required=True)
     store_parser.add_argument("--db-location", type=str)
     store_parser.add_argument("--file-location", type=str, required=True)
 
     retrieve_parser = subparsers.add_parser("retrieve")
-    retrieve_parser.add_argument("--text", type=str, required=True)
     retrieve_parser.add_argument("--collection-name", type=str, required=True)
     retrieve_parser.add_argument("--model", type=str, required=True)
     retrieve_parser.add_argument("--result-amount", type=int, required=True)
@@ -52,10 +51,12 @@ def main():
             return False
 
     elif args.command == "store":
+        print(args.file_location)
         try:
+            content = sys.stdin.read()
             collection.add(
-                documents=[args.text],
-                embeddings=embedding_function([args.text]),
+                documents=[content],
+                embeddings=embedding_function([content]),
                 metadatas=[{"file": args.file_location}],
                 ids=[str(uuid.uuid4())],
             )
@@ -66,8 +67,9 @@ def main():
             return False
 
     elif args.command == "retrieve":
+        content = sys.stdin.read()
         queries = collection.query(
-            query_embeddings=embedding_function([args.text]),
+            query_embeddings=embedding_function([content]),
             n_results=args.result_amount,
         )
         print(queries)
