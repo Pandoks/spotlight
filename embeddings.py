@@ -1,4 +1,3 @@
-import ollama
 import chromadb
 import argparse
 import uuid

@@ -1,7 +1,13 @@
+local Scan = require("plenary.scandir")
 local Module = {}
 
 local defaultOptions = {
-	model = "mistral",
+	ollamaModel = "mistral",
+	persist = true,
+	pythonPath = "python",
+	databaseDirectory = ".nvim-spotlight",
+	hidden = true,
+	gitignore = false,
 }
 for key, value in pairs(defaultOptions) do
 	Module[key] = value
@@ -13,42 +19,77 @@ Module.setup = function(options)
 	end
 end
 
-local function substitutePromptPlaceholders(prompt)
-	if not prompt then
-		return
-	end
-	local promptText = prompt
-	if string.find(promptText, "%$input") then
-		local userPromptResponse = vim.fn.input("Prompt: ")
-		promptText = string.gsub(promptText, "%$input", userPromptResponse)
-	end
-end
-
 Module.exec = function(options)
 	local opts = vim.tbl_deep_extend("force", Module, options)
-
-	opts.init(opts)
-
-	local currentBuffer = vim.fn.bufnr("%")
-	local mode = opts.mode or vim.fn.mode()
-	local startingPosition = nil
-	local endingPosition = nil
-	if mode == "v" or mode == "V" then
-		startingPosition = vim.fn.getpos("'<")
-		endingPosition = vim.fn.getpos("'>")
-		endingPosition[3] = vim.fn.col("'>")
-	else
-		startingPosition = vim.fn.getpos(".")
-		endingPosition = startingPosition
+	local embeddings = vim.api.nvim_get_runtime_file("embeddings.py", true)
+	for _, value in ipairs(embeddings) do
+		if value:find("spotlight/embeddings.py") ~= nil then
+			embeddings = value
+			break
+		end
 	end
-	local context = table.concat(
-		vim.api.nvim_buf_get_text(
-			currentBuffer,
-			startingPosition[2] - 1,
-			startingPosition[3] - 1,
-			endingPosition[2] - 1,
-			endingPosition[3] - 1,
-			{}
-		)
-	)
+	if opts.persist then
+		local directoryLocation = vim.fn.getcwd()
+		local items = vim.fs.dir(directoryLocation)
+		local isInitialized = false
+		for item in items do
+			if vim.fn.isdirectory(directoryLocation .. item) == 1 and item == opts.databaseDirectory then
+				isInitialized = true
+				break
+			end
+		end
+
+		if isInitialized then
+			print("test")
+		else
+			print("Initializing...")
+			local setupCommand = opts.pythonPath
+				.. " "
+				.. embeddings
+				.. " setup --db-location "
+				.. directoryLocation
+				.. "/"
+				.. opts.databaseDirectory
+				.. " --collection-name spotlight"
+			os.execute(setupCommand)
+			print("Created vector database at " .. directoryLocation .. "/" .. opts.databaseDirectory)
+
+			print("Uploading codebase to the vector database (this may take some time)")
+			local files = Scan.scan_dir(directoryLocation, {
+				hidden = options.hidden,
+				respect_gitignore = options.gitignore,
+			})
+			for _, filePath in ipairs(files) do
+				local file = io.open(filePath, "r")
+				if not file then
+					goto continue
+				end
+				local content = file:read("*all")
+				file:close()
+				content = content:gsub("\\", "\\\\"):gsub("'", "\\'")
+				local insertCommand = opts.pythonPath
+					.. " "
+					.. embeddings
+					.. " store --db-location "
+					.. directoryLocation
+					.. "/"
+					.. opts.databaseDirectory
+					.. " --collection-name spotlight --model "
+					.. opts.ollamaModel
+					.. " --file-location "
+					.. filePath
+					.. " --text '"
+					.. content
+					.. "'"
+				os.execute(insertCommand)
+				::continue::
+			end
+		end
+	end
 end
+
+vim.api.nvim_create_user_command("Spotlight", function()
+	Module.exec(defaultOptions)
+end, {})
+
+return Module
