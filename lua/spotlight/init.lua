@@ -1,4 +1,6 @@
 local Scan = require("plenary.scandir")
+local Job = require("plenary.job")
+local Telescope = require("telescope.builtin")
 local Module = {}
 
 local defaultOptions = {
@@ -8,6 +10,7 @@ local defaultOptions = {
 	databaseDirectory = ".nvim-spotlight",
 	hidden = true,
 	gitignore = true,
+	queryNumber = 10,
 }
 for key, value in pairs(defaultOptions) do
 	Module[key] = value
@@ -41,6 +44,49 @@ Module.exec = function(options)
 
 		if isInitialized then
 			print("Initialized")
+			local prompt = vim.fn.input("Prompt: ")
+			local output = nil
+			Job:new({
+				command = opts.pythonPath,
+				args = {
+					embeddings,
+					"retrieve",
+					"--db-location",
+					directoryLocation .. "/" .. opts.databaseDirectory,
+					"--collection-name",
+					"spotlight",
+					"--model",
+					opts.ollamaModel,
+					"--result-amount",
+					opts.queryNumber,
+				},
+				writer = prompt,
+				on_exit = function(job)
+					output = job:result()[1]
+				end,
+			}):sync()
+
+			local queryOutput = vim.json.decode(output)
+			local files = queryOutput.metadatas[1]
+			local fileList = {}
+			for _, file in ipairs(files) do
+				print(file.file)
+				table.insert(fileList, file.file)
+			end
+
+			Telescope.find_files({
+				prompt_title = "test",
+				cwd = vim.fn.getcwd(),
+				search_dirs = fileList,
+				attach_mappings = function(_, map)
+					map("i", "<CR>", function(prompt_bufnr)
+						local selection = require("telescope.actions.state").get_selected_entry(prompt_bufnr)
+						require("telescope.actions").close(prompt_bufnr)
+						vim.api.nvim_command("edit " .. selection.path)
+					end)
+					return true
+				end,
+			})
 		else
 			print("Initializing...")
 			local setupCommand = opts.pythonPath

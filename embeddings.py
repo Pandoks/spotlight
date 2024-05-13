@@ -2,6 +2,7 @@ import sys
 import chromadb
 import argparse
 import uuid
+import json
 from chromadb.utils import embedding_functions
 
 chromadb_client = None
@@ -72,7 +73,7 @@ def main():
             query_embeddings=embedding_function([content]),
             n_results=args.result_amount,
         )
-        print(queries)
+        print(json.dumps(queries))
         return queries
 
 
