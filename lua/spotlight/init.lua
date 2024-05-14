@@ -4,7 +4,7 @@ local Telescope = require("telescope.builtin")
 local Module = {}
 
 local defaultOptions = {
-	ollamaModel = "mistral",
+	ollamaModel = "llama3",
 	persist = true,
 	pythonPath = "python",
 	databaseDirectory = ".nvim-spotlight",
@@ -109,6 +109,8 @@ Module.exec = function(options)
 				if options.gitignore and (filePath:find("%.git/") or filePath:find("/.git$")) then
 					goto continue
 				end
+
+				print(filePath)
 
 				local databaseDirectoryMatchPattern =
 					opts.databaseDirectory:gsub("([%%%^%$%(%)%.%[%]%*%+%-%?])", "%%%1")
