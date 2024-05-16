@@ -9,7 +9,7 @@ class OllamaEmbedDocumentsConfig(TypedDict):
 
 
 def embed_documents(config: OllamaEmbedDocumentsConfig) -> List[List[float]]:
-    # embedder = OllamaEmbeddings(model=config["model"])
-    embedder = OpenAIEmbeddings()
+    embedder = OllamaEmbeddings(model=config["model"])
+    # embedder = OpenAIEmbeddings()
     embeddings = embedder.embed_documents(config["texts"])
     return embeddings

@@ -1,10 +1,8 @@
 from typing import List, Optional, TypedDict
-from chromadb.api import ClientAPI
-from chromadb.api.models.Collection import Collection
+from chromadb.api.types import Where, WhereDocument
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
-import chromadb
 
 
 class ChromaSetupConfig(TypedDict):
@@ -19,15 +17,14 @@ class ChromaStoreConfig(TypedDict):
 
 
 # https://python.langchain.com/v0.1/docs/integrations/vectorstores/chroma/
-def setup_database(config: ChromaSetupConfig) -> ClientAPI:
-    database_client = None
-    if config["persistent_directory"]:
-        database_client = chromadb.PersistentClient(path=config["persistent_directory"])
-    else:
-        database_client = chromadb.Client()
-    database_client.get_or_create_collection(config["collection_name"])
-    return database_client
+def setup_database(config: ChromaSetupConfig) -> Chroma:
+    database = Chroma(
+        collection_name=config["collection_name"],
+        embedding_function=config["embedding_function"],
+        persist_directory=config["persistent_directory"],
+    )
+    return database
 
 
-def upsert(config: ChromaStoreConfig) -> List[str]:
-    return config["database"].add_documents(config["documents"])
+# def upsert(config: ChromaStoreConfig) -> List[str]:
+#     return config["database"].add_documents(config["documents"]\)
