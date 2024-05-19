@@ -22,6 +22,11 @@ class ChromaDeleteConfig(TypedDict):
     database: Chroma
 
 
+class ChromaUpdateConfig(TypedDict):
+    documents: List[Document]
+    database: Chroma
+
+
 # https://python.langchain.com/v0.1/docs/integrations/vectorstores/chroma/
 def setup_database(config: ChromaSetupConfig) -> Chroma:
     database = Chroma(
@@ -87,3 +92,14 @@ def delete(config: ChromaDeleteConfig) -> List[str]:
             continue
         to_be_deleted_ids.append(current_to_be_deleted_ids)
     return to_be_deleted_ids
+
+
+def update(config: ChromaUpdateConfig) -> List[str] | None:
+    database = config["database"]
+    metadatas = []
+    for document in config["documents"]:
+        metadata = document.dict()["metadata"]
+        if metadata not in metadatas:
+            metadatas.append(metadata)
+    delete({"database": database, "metadatas": metadatas})
+    return add({"database": database, "documents": config["documents"]})
