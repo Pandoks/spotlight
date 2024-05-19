@@ -1,4 +1,4 @@
-from typing import List, Optional, TypedDict
+from typing import Dict, List, Optional, TypedDict
 from chromadb.api.types import Where, WhereDocument
 from langchain_community.vectorstores.chroma import Chroma
 from langchain_core.documents import Document
@@ -14,6 +14,11 @@ class ChromaSetupConfig(TypedDict):
 
 class ChromaAddConfig(TypedDict):
     documents: List[Document]
+    database: Chroma
+
+
+class ChromaDeleteConfig(TypedDict):
+    metadatas: Optional[List[Dict]]
     database: Chroma
 
 
@@ -55,3 +60,30 @@ def add(config: ChromaAddConfig) -> List[str] | None:
         return None
 
     return config["database"].add_documents(documents_with_hashes)
+
+
+# WILL DELETE ALL contents inside of database if no metadata is provided
+def delete(config: ChromaDeleteConfig) -> List[str]:
+    database = config["database"]
+    if not config["metadatas"]:
+        to_be_deleted_documents = database.get()
+        to_be_deleted_ids: List[str] = to_be_deleted_documents["ids"]
+        database.delete(ids=to_be_deleted_ids)
+        return to_be_deleted_ids
+
+    to_be_deleted_ids = []
+    for metadata in config["metadatas"]:
+        query_filter_list: List[Dict[str, str]] = []
+        for key, value in metadata.items():
+            query_filter_list.append({key: value})
+        query_filter: Dict | None = None
+        if len(query_filter_list) == 1:
+            query_filter = query_filter_list[0]
+        else:
+            query_filter = {"$and": query_filter_list}
+        to_be_deleted_documents = database.get(where=query_filter)
+        current_to_be_deleted_ids = to_be_deleted_documents["ids"]
+        if not len(current_to_be_deleted_ids):
+            continue
+        to_be_deleted_ids.append(current_to_be_deleted_ids)
+    return to_be_deleted_ids
