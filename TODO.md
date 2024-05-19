@@ -1,0 +1,1 @@
+- [ ] Decide if you should use langchain Documents as a common api or just a standard dict

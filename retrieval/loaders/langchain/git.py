@@ -1,5 +1,5 @@
-from typing import Callable, List, Optional, TypedDict
 from langchain_community.document_loaders import GitLoader
+from typing import Callable, List, Optional, TypedDict
 from langchain_core.documents import Document
 
 

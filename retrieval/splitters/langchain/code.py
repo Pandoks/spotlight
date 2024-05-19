@@ -17,5 +17,5 @@ def split_text(config: CodeSplitTextConfig) -> List[Document]:
     splitter = RecursiveCharacterTextSplitter.from_language(
         language=config["language"], chunk_size=chunk_size, chunk_overlap=chunk_overlap
     )
-    docs = splitter.create_documents([config["text"]])
-    return docs
+    documents = splitter.create_documents([config["text"]])
+    return documents
