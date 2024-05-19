@@ -1,2 +1,3 @@
 - [ ] Decide if you should use langchain Documents as a common api or just a standard dict
 - [ ] Add requirements.txt for easy pip dependency installs
+- [ ] Create a class for a common api to interact with
