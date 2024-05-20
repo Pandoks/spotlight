@@ -14,6 +14,7 @@ class ParentRetrieveConfig(TypedDict):
     parent_splitter: Optional[TextSplitter]
 
 
+# Make sure to use the child_splitter and parent_splitter before storing documents in their respective databases
 def retrieve(config: ParentRetrieveConfig) -> List[Document]:
     retriever = ParentDocumentRetriever(
         vectorstore=config["database"],
