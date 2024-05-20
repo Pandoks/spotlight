@@ -1,4 +1,4 @@
-from typing import Optional, TypedDict
+from typing import List, Optional, TypedDict
 from langchain_core.documents import Document
 from langchain_core.stores import BaseStore
 from langchain_core.vectorstores import VectorStore
@@ -21,3 +21,5 @@ def retrieve(config: ParentRetrieveConfig) -> List[Document]:
         child_splitter=config["child_splitter"],
         parent_splitter=config["parent_splitter"],
     )
+    documents = retriever.invoke(config["prompt"])
+    return documents
