@@ -1,5 +1,5 @@
 from typing import Dict, List, Optional, TypedDict
-from chromadb.api.types import Where, WhereDocument
+from chromadb.api.types import Where
 from langchain_community.vectorstores.chroma import Chroma
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
