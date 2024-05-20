@@ -4,6 +4,7 @@ from langchain_community.vectorstores.chroma import Chroma
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from hashlib import sha256
+from langchain_core.vectorstores import VectorStore
 
 
 class ChromaSetupConfig(TypedDict):
@@ -28,7 +29,7 @@ class ChromaUpdateConfig(TypedDict):
 
 
 # https://python.langchain.com/v0.1/docs/integrations/vectorstores/chroma/
-def setup_database(config: ChromaSetupConfig) -> Chroma:
+def setup_database(config: ChromaSetupConfig) -> VectorStore:
     database = Chroma(
         collection_name=config["collection_name"],
         embedding_function=config["embedding_function"],
