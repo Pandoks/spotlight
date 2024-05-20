@@ -70,6 +70,7 @@ def main():
                         )
                     print(json.dumps(json_documents))
                     return
+
                 case "splitter":
                     documents: List[Document] = function(config)
                     json_documents = []
@@ -83,10 +84,12 @@ def main():
                         )
                     print(json.dumps(json_documents))
                     return
+
                 case "embedding":
                     embeddings: List[List[float]] = function(config)
                     print(json.dumps(embeddings))
                     return
+
                 case "store":
                     if function_name == "setup_database":
                         function(config)
@@ -111,6 +114,7 @@ def main():
                     else:
                         print(json.dumps({}))
                         return
+
                 case "retriever":
                     documents: List[Document] = function(config)
                     json_documents = []
@@ -124,9 +128,11 @@ def main():
                         )
                     print(json.dumps(json_documents))
                     return
+
                 case _:
                     print(json.dumps({}))
                     return
+
         else:
             print(
                 json.dumps({"error": f"'{function_name}' is not a callable function"})
