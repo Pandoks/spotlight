@@ -1,2 +1,3 @@
 .nvim*
 .test/
+.ipynb_checkpoints/
