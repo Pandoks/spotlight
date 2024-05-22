@@ -1,8 +1,6 @@
 import json
 from typing import List
-from chromadb.config import Settings
 from langchain_core.documents import Document
-from langchain_core.vectorstores import VectorStore
 
 
 def print_documents_in_json(documents: List[Document]) -> None:
