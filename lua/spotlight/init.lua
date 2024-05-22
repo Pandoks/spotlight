@@ -16,6 +16,14 @@ for key, value in pairs(defaultOptions) do
 	Module[key] = value
 end
 
+local embeddings = vim.api.nvim_get_runtime_file("retrieval.py", true)
+for _, value in ipairs(embeddings) do
+	if value:find("spotlight/retrieval/retrieval.py") ~= nil then
+		embeddings = value
+		break
+	end
+end
+
 Module.setup = function(options)
 	for key, value in pairs(options) do
 		Module[key] = value
@@ -24,13 +32,6 @@ end
 
 Module.exec = function(options)
 	local opts = vim.tbl_deep_extend("force", Module, options)
-	local embeddings = vim.api.nvim_get_runtime_file("embeddings.py", true)
-	for _, value in ipairs(embeddings) do
-		if value:find("spotlight/embeddings.py") ~= nil then
-			embeddings = value
-			break
-		end
-	end
 	if opts.persist then
 		local directoryLocation = vim.fn.getcwd()
 		local items = vim.fs.dir(directoryLocation)

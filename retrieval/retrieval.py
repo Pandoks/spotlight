@@ -26,8 +26,9 @@ def main():
     retrieve_parser.add_argument("--function", type=str, required=True)
 
     args = parser.parse_args()
+    print(args.command)
     stdin = sys.stdin.read()
-    if not stdin:
+    if len(stdin) == 0 or args.__sizeof__() == 0:
         print(json.dumps({}))
         return
     data = json.loads(stdin)
@@ -36,7 +37,7 @@ def main():
     if args not in ["loader", "splitter", "embedding", "store", "retriever"]:
         print(json.dumps({}))
         return
-    module_name = args
+    module_name = args.command
 
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     if not spec:
