@@ -12,14 +12,22 @@ local defaultOptions = {
 	gitignore = true,
 	queryNumber = 10,
 }
+local defaultOptions = {
+	loaders = {
+		name = "git",
+	},
+	splitters = {},
+	stores = {},
+	retrievers = {},
+}
 for key, value in pairs(defaultOptions) do
 	Module[key] = value
 end
 
-local embeddings = vim.api.nvim_get_runtime_file("retrieval.py", true)
-for _, value in ipairs(embeddings) do
+local retriever = vim.api.nvim_get_runtime_file("retrieval.py", true)
+for _, value in ipairs(retriever) do
 	if value:find("spotlight/retrieval/retrieval.py") ~= nil then
-		embeddings = value
+		retriever = value
 		break
 	end
 end
@@ -30,8 +38,27 @@ Module.setup = function(options)
 	end
 end
 
-Module.exec = function(options)
+Module.loader = function(options)
 	local opts = vim.tbl_deep_extend("force", Module, options)
+end
+
+Module.splitter = function(options)
+	local opts = vim.tbl_deep_extend("force", Module, options)
+end
+
+Module.embedding = function(options)
+	local opts = vim.tbl_deep_extend("force", Module, options)
+end
+
+Module.store = function(options)
+	local opts = vim.tbl_deep_extend("force", Module, options)
+end
+
+Module.retrieve = function(options)
+	local opts = vim.tbl_deep_extend("force", Module, options)
+end
+
+Module.exec = function(options)
 	if opts.persist then
 		local directoryLocation = vim.fn.getcwd()
 		local items = vim.fs.dir(directoryLocation)
@@ -50,7 +77,7 @@ Module.exec = function(options)
 			Job:new({
 				command = opts.pythonPath,
 				args = {
-					embeddings,
+					retriever,
 					"retrieve",
 					"--db-location",
 					directoryLocation .. "/" .. opts.databaseDirectory,
@@ -92,7 +119,7 @@ Module.exec = function(options)
 			print("Initializing...")
 			local setupCommand = opts.pythonPath
 				.. " "
-				.. embeddings
+				.. retriever
 				.. " setup --db-location "
 				.. directoryLocation
 				.. "/"
@@ -127,7 +154,7 @@ Module.exec = function(options)
 				file:close()
 				local insertCommand = opts.pythonPath
 					.. " "
-					.. embeddings
+					.. retriever
 					.. " store --db-location "
 					.. directoryLocation
 					.. "/"

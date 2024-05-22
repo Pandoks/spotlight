@@ -1,6 +1,7 @@
 from langchain_community.document_loaders import GitLoader
 from typing import Callable, List, Optional, TypedDict
 from langchain_core.documents import Document
+from retrieval.util import print_documents_in_json
 
 
 class GitLoadDocumentsConfig(TypedDict):
@@ -17,4 +18,5 @@ def load_documents(config: GitLoadDocumentsConfig) -> List[Document]:
         file_filter=config["file_filter"],
     )
     data = loader.load()
+    print_documents_in_json(data)
     return data
