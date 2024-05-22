@@ -4,6 +4,7 @@ from langchain_core.stores import BaseStore
 from langchain_core.vectorstores import VectorStore
 from langchain_text_splitters import TextSplitter
 from langchain.retrievers import ParentDocumentRetriever
+from retrieval.util import print_documents_in_json
 
 
 class ParentRetrieveConfig(TypedDict):
@@ -23,4 +24,5 @@ def retrieve(config: ParentRetrieveConfig) -> List[Document]:
         parent_splitter=config["parent_splitter"],
     )
     documents = retriever.invoke(config["prompt"])
+    print_documents_in_json(documents)
     return documents

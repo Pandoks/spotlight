@@ -3,6 +3,7 @@ from langchain_core.documents import Document
 from langchain_core.language_models.llms import LLM
 from langchain_core.retrievers import RetrieverLike
 from langchain_core.prompts import PromptTemplate
+from retrieval.util import print_documents_in_json
 
 
 class MultiQueryRetrieveConfig(TypedDict):
@@ -35,4 +36,5 @@ def retrieve(config: MultiQueryRetrieveConfig) -> List[Document]:
         config["prompt_generator"] | config["llm"] | parse_questions | run_prompts
     )
     documents = llm_sequence.invoke({"question": config["prompt"]})
+    print_documents_in_json(documents)
     return documents

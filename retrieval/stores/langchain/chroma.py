@@ -1,3 +1,4 @@
+import os
 from typing import Dict, List, Optional, TypedDict
 from chromadb.api.types import Where
 from langchain_community.vectorstores.chroma import Chroma
@@ -5,6 +6,8 @@ from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from hashlib import sha256
 from langchain_core.vectorstores import VectorStore
+from retrieval.util import print_document_ids_in_json
+import contextlib
 
 
 class ChromaSetupConfig(TypedDict):
@@ -35,6 +38,8 @@ def setup_database(config: ChromaSetupConfig) -> VectorStore:
         embedding_function=config["embedding_function"],
         persist_directory=config["persistent_directory"],
     )
+    if not config["persistent_directory"]:
+        print(config["persistent_directory"])
     return database
 
 
@@ -65,7 +70,9 @@ def add(config: ChromaAddConfig) -> List[str] | None:
     if not len(documents_with_hashes):
         return None
 
-    return config["database"].add_documents(documents_with_hashes)
+    document_ids = config["database"].add_documents(documents_with_hashes)
+    print_document_ids_in_json(document_ids)
+    return document_ids
 
 
 # WILL DELETE ALL contents inside of database if no metadata is provided
@@ -92,15 +99,21 @@ def delete(config: ChromaDeleteConfig) -> List[str]:
         if not len(current_to_be_deleted_ids):
             continue
         to_be_deleted_ids.append(current_to_be_deleted_ids)
+
+    print_document_ids_in_json(to_be_deleted_ids)
     return to_be_deleted_ids
 
 
 def update(config: ChromaUpdateConfig) -> List[str] | None:
-    database = config["database"]
-    metadatas = []
-    for document in config["documents"]:
-        metadata = document.dict()["metadata"]
-        if metadata not in metadatas:
-            metadatas.append(metadata)
-    delete({"database": database, "metadatas": metadatas})
-    return add({"database": database, "documents": config["documents"]})
+    with contextlib.redirect_stdout(open(os.devnull, "w")):
+        database = config["database"]
+        metadatas = []
+        for document in config["documents"]:
+            metadata = document.dict()["metadata"]
+            if metadata not in metadatas:
+                metadatas.append(metadata)
+        delete({"database": database, "metadatas": metadatas})
+    updated_document_ids = add({"database": database, "documents": config["documents"]})
+    if not updated_document_ids:
+        return
+    return updated_document_ids

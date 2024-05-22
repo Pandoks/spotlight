@@ -1,8 +1,8 @@
 from typing import List, Optional, TypedDict
-
 from langchain.storage import InMemoryStore, LocalFileStore, create_kv_docstore
 from langchain_core.documents import Document
 from langchain_core.stores import BaseStore
+from retrieval.util import print_document_ids_in_json
 
 
 class KeyValueStoreSetupConfig(TypedDict):
@@ -32,6 +32,7 @@ def setup_database(config: KeyValueStoreSetupConfig) -> BaseStore:
 
     file_store = LocalFileStore(persistent_directory)
     store = create_kv_docstore(file_store)
+    print(config["persistent_directory"])
     return store
 
 
@@ -46,6 +47,7 @@ def add(config: KeyValueStoreAddConfig) -> List[str] | None:
 
     if not len(added_files):
         return None
+    print_document_ids_in_json(added_files)
     return added_files
 
 
@@ -64,8 +66,10 @@ def delete(config: KeyValueStoreDeleteConfig) -> List[str]:
         database.mdelete(file_path)
         deleted_files.append(file_path)
 
+    print_document_ids_in_json(deleted_files)
     return deleted_files
 
 
 def update(config: KeyValueStoreUpdateConfig) -> List[str] | None:
-    return add(config)
+    updated_document_ids = add(config)
+    return updated_document_ids

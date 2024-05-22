@@ -4,6 +4,7 @@ from langchain.retrievers import SelfQueryRetriever
 from langchain_core.documents import Document
 from langchain_core.language_models.llms import LLM
 from langchain_core.vectorstores import VectorStore
+from retrieval.util import print_documents_in_json
 
 
 class MetadataRetrieveConfig(TypedDict):
@@ -22,4 +23,5 @@ def retrieve(config: MetadataRetrieveConfig) -> List[Document]:
         config["metadata_field_info"],
     )
     documents = retriever.invoke(config["prompt"])
+    print_documents_in_json(documents)
     return documents

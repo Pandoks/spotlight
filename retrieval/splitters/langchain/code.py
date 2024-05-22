@@ -1,6 +1,7 @@
 from typing import List, Optional, TypedDict
 from langchain_core.documents import Document
 from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
+from retrieval.util import print_documents_in_json
 
 
 class CodeSplitTextConfig(TypedDict):
@@ -18,4 +19,5 @@ def split_text(config: CodeSplitTextConfig) -> List[Document]:
         language=config["language"], chunk_size=chunk_size, chunk_overlap=chunk_overlap
     )
     documents = splitter.create_documents([config["text"]])
+    print_documents_in_json(documents)
     return documents
